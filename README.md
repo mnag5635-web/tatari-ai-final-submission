@@ -21,9 +21,24 @@ The tool works. `PRD.md` is what it was built from. Read both, then improve it.
 ```bash
 export ANTHROPIC_API_KEY='...'   # your own key, see below
 python3 llm.py                   # should print something like: ok
-python3 -m unittest discover -s tests   # should pass
-python3 eval.py                  # the 90% claim.  See the note on labels.json above
+python3 -m unittest discover -s tests   # deterministic tests; should pass
+python3 eval.py                  # live model evaluation + latency/error reporting
 ```
+
+The triager now treats provider/configuration failures and invalid model output as
+**triage-system errors**, not as CI `infra` classifications. The CLI writes those
+errors to stderr and exits non-zero, so callers can distinguish "the build had an
+infrastructure failure" from "the triage program failed."
+
+CI logs are JSON-serialized as untrusted model input. The model selects only the
+category and required confidence value; the application supplies a concise,
+category-specific action so arbitrary log or model text is never presented as
+trusted operational guidance.
+
+`eval.py` reports legacy-label agreement, classifier errors, per-case latency, a
+small-sample Wilson interval, and category outcomes. Because `labels.json` has only
+ten weakly adjudicated examples, those numbers are evidence for iteration rather
+than proof of production accuracy. See `BENCHMARK_REVIEW.md` for the manual audit.
 
 Python 3.10+. If you would rather use the official `anthropic` SDK, a different
 language, or a different approach entirely, that is fine.
