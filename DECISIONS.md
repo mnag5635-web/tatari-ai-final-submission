@@ -2,34 +2,33 @@
 
 ## What I assumed
 
-- The five categories are fixed. `confidence: "high"` is an API contract for successful classifications, not calibrated probability.
-- Provider, configuration, parsing, and program failures are triage-system failures; they must not be mislabeled as CI failures.
-- “Fast enough” has no SLA, so I report measured latency rather than inventing a threshold.
-- `labels.json` is a regression artifact, not perfect ground truth: its labels came from an earlier prompt plus spot checks.
+The categories are fixed, and `confidence: "high"` is a product-contract value, not calibrated probability. Classifier failures are system failures, not CI `infra`. “Fast enough” has no SLA, so I report latency rather than invent a threshold. I treat the weakly adjudicated `labels.json` as a regression artifact, not unquestionable ground truth.
 
 ## What I changed
 
-- **Fail closed:** invalid model output and provider failures now raise `TriageError`; the CLI explains the error on stderr and exits non-zero instead of manufacturing `infra / high`.
-- **Protect the trust boundary:** the log is JSON-serialized as untrusted evidence, while strict parsing rejects wrappers, arrays, duplicate keys, extra values, unsupported categories, and invalid confidence.
-- **Own remediation in code:** the model selects only category and confidence; the application supplies a deterministic, category-specific action. This is intentionally less context-specific than free-form LLM remediation, but it is stable, auditable, and avoids exposing hallucinated operational commands.
-- **Make evaluation useful:** `eval.py` separates system errors from label disagreements and reports per-case results, latency, category outcomes, and a Wilson interval. `BENCHMARK_REVIEW.md` documents manual review without rewriting labels.
+- **Fail closed:** provider/invalid-output failures raise `TriageError`; the CLI writes to stderr and exits non-zero instead of manufacturing `infra / high`.
+- **Protect the boundary:** logs are JSON-serialized as untrusted evidence; strict parsing rejects malformed or ambiguous responses.
+- **Own remediation:** the model selects category/confidence; code supplies stable category actions rather than potentially hallucinated commands.
+- **Improve evaluation:** system errors are separate from label disagreements; reports include per-case outcomes, latency, category counts, and a Wilson interval. `BENCHMARK_REVIEW.md` records manual review.
 
 ## What I deliberately did not change
 
-I did not edit `labels.json` to force 100%. I consider `build-4928.log` a plausible `product_bug`: the API promises sorted output while the SQL omits `ORDER BY`. I also avoided a rules engine, second provider, SDK, UI, Slack integration, database, and Docker layer; none addresses the highest-risk failure mode. Credentials and workspace headers remained runtime-only.
+I did not edit `labels.json` to force 100%. `build-4928.log` is plausibly `product_bug`: the API promises sorted output while SQL omits `ORDER BY`. I avoided a rules engine, second provider, UI, Slack integration, database, and Docker; none addressed the highest risk within the time box. Credentials remained runtime-only.
 
 ## How I know it is better
 
-The deterministic suite grew from **5/5 to 30/30 passing**, covering strict parsing, provider failures, adversarial log serialization, safe actions, bad input, CLI exits, and evaluation error accounting. Without an API key, the CLI now exits **1** with a clear configuration error; previously it returned `infra / high`.
+The deterministic suite grew from **5 to 30 passing tests**, covering strict parsing, provider failures, adversarial input, safe actions, CLI exits, and evaluation error accounting. A missing key now exits **1**, not with a false classification.
 
-Three live `claude-haiku-4-5` runs produced identical predictions, **9/10 legacy-label agreement**, and **0/30 system errors**; `build-4928` was the sole disagreement. Across 30 calls, latency was **8.57 s median, 15.02 s p95, and 29.92 s max**. The tail appears dominated by external model/API variability, but without a product latency SLO I do not claim this synchronous path is “fast enough”; production rollout should set latency/cost budgets and evaluate timeout, retry, or shadow/asynchronous options. This supports repeatability, not production accuracy.
+Three live `claude-haiku-4-5` runs produced identical predictions, **27/30 legacy-label matches**, and **0/30 system errors**; `build-4928` was the sole disagreement. Latency was **8.57 s median, 15.02 s p95, and 29.92 s max**. This supports repeatability, not production accuracy or an undefined latency SLO.
+
+At current Haiku 4.5 [list pricing](https://docs.anthropic.com/en/docs/about-claude/pricing) (**$1/M input, $5/M output**), observed prompt size suggests **~$0.001/build**: roughly **$10/day at 10k builds, $100 at 100k, or $1k at 1M**, before retries/caching. Production budgeting must use recorded token usage and build volume.
 
 ## What did not work
 
-The first smoke call failed HTTP 400 because the key required a workspace header; an authorized workspace-list request then failed HTTP 403 because the key lacked admin permission. No fixture was sent until the user supplied the workspace ID. Later review exposed permissive wrapper and duplicate-key parsing; failing regression tests reproduced both gaps before the parser was fixed. Diff inspection also caught a stray README fence, and the test suite caught one patch that had not persisted.
+The first smoke call failed HTTP 400 because the key required a workspace header; listing workspaces failed HTTP 403. No fixture was sent until the ID was supplied. Regression tests later exposed permissive wrapper/duplicate-key parsing, and verification caught an unpersisted patch.
 
 ## What I would do next
 
-Create a larger human-adjudicated dataset with annotation guidance and inter-rater agreement; define accuracy, latency, cost, and action-quality thresholds; evaluate richer context-aware remediation separately at a lower trust level; add input budgets, approved secret/PII redaction, and adversarial cases; then shadow-deploy and adjudicate real disagreements before automation.
+Build a larger human-adjudicated dataset with inter-rater agreement; define accuracy, latency, cost, and action-quality gates; add input budgets, approved secret/PII redaction, and adversarial cases; then shadow-deploy and adjudicate disagreements.
 
 **Recommendation:** limited shadow pilot, not authoritative organization-wide rollout next week. The implementation is safer and repeatable, but ten weakly adjudicated examples are insufficient evidence.

@@ -1,6 +1,6 @@
 # AI Session Log
 
-> **Transcript context:** Exchange 1 is intentionally a detailed implementation brief prepared after reviewing the exercise and deciding what a strong submission should optimize for. The exchanges that follow preserve the actual execution process, including failed calls, debugging, corrections, and changes in judgment; the transcript has not been rewritten to make those steps appear more spontaneous.
+> **Transcript context:** Before Exchange 1, I used a separate assistant conversation to inspect the supplied repository and synthesize a detailed implementation brief. Exchange 1 is therefore a prepared execution prompt, not the beginning of the analysis. The exchanges that follow preserve the actual execution process, including failed calls, debugging, corrections, and changes in judgment; the transcript has not been rewritten to make those steps appear more spontaneous.
 
 
 ## Exchange 1
@@ -1515,3 +1515,13 @@ then make these changes and give me the final zip also tell me based on the orig
 ### Assistant response summary
 
 Applied only the three review-driven documentation improvements: clarified that the observed tail latency does not prove readiness against an undefined SLO and should be evaluated against explicit latency/cost budgets; documented the intentional trade-off of deterministic category actions versus richer but less trustworthy free-form remediation; and added a transparent framing note explaining that the first transcript prompt was a front-loaded implementation brief rather than rewriting the subsequent iterative process. Re-read the original README and concluded that the requested deliverables center on preserved commits, `DECISIONS.md`, and the assistant transcript, so a Git repository/branch is the intended submission form; a ZIP is best used only as the transfer mechanism or backup when the submission portal requires a file.
+
+## Exchange 16
+
+### User prompt (verbatim)
+
+sure go ahead and do that
+
+### Assistant response summary
+
+Applied the agreed documentation-only refinements without rewriting Git history or changing implementation, tests, fixtures, labels, or evaluation evidence. Made the transcript provenance explicit, compressed `DECISIONS.md` to a genuine one-page brief, added a clearly labeled order-of-magnitude organization-scale cost estimate using current Haiku 4.5 list pricing, and retained the limited shadow-pilot recommendation. Re-ran the complete verification and packaging checks before producing the final ZIP.
