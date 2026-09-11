@@ -60,45 +60,61 @@ class ModelResponseError(TriageError):
     """Raised when a model response does not satisfy the triage output contract."""
 
 
+def _reject_duplicate_keys(pairs: list[tuple[str, object]]) -> dict[str, object]:
+    """Build a JSON object while rejecting ambiguous duplicate keys."""
+    result: dict[str, object] = {}
+    for key, value in pairs:
+        if key in result:
+            raise ModelResponseError(f"Duplicate JSON key: {key!r}.")
+        result[key] = value
+    return result
+
+
 def _extract_json(text: str) -> dict[str, object]:
     """Extract exactly one JSON object from a model reply.
 
     Clean JSON is preferred. A single object surrounded by accidental prose or a
-    code fence is tolerated, but multiple objects are rejected as ambiguous.
+    code fence is tolerated, but malformed wrappers, arrays, duplicate keys, and
+    multiple objects are rejected as ambiguous.
     """
     if not isinstance(text, str) or not text.strip():
         raise ModelResponseError("Model returned an empty response.")
 
+    stripped = text.strip()
     try:
-        value = json.loads(text)
+        value = json.loads(stripped, object_pairs_hook=_reject_duplicate_keys)
     except json.JSONDecodeError:
-        value = None
+        pass
     else:
         if not isinstance(value, dict):
             raise ModelResponseError("Model response must be a JSON object.")
         return value
 
-    decoder = json.JSONDecoder()
-    objects: list[dict[str, object]] = []
-    position = 0
-    while True:
-        start = text.find("{", position)
-        if start < 0:
-            break
-        try:
-            candidate, end = decoder.raw_decode(text, start)
-        except json.JSONDecodeError:
-            position = start + 1
-            continue
-        if isinstance(candidate, dict):
-            objects.append(candidate)
-        position = max(end, start + 1)
-
-    if not objects:
+    start = stripped.find("{")
+    end = stripped.rfind("}")
+    if start < 0 or end < start:
         raise ModelResponseError("Model response did not contain a valid JSON object.")
-    if len(objects) > 1:
-        raise ModelResponseError("Model response contained multiple JSON objects.")
-    return objects[0]
+
+    surrounding_text = stripped[:start] + stripped[end + 1 :]
+    if any(character in surrounding_text for character in "{}[]"):
+        raise ModelResponseError(
+            "Model response contained an ambiguous JSON wrapper or multiple values."
+        )
+
+    try:
+        value = json.loads(
+            stripped[start : end + 1],
+            object_pairs_hook=_reject_duplicate_keys,
+        )
+    except json.JSONDecodeError as exc:
+        raise ModelResponseError(
+            "Model response did not contain one complete valid JSON object; "
+            "it may be incomplete or contain multiple objects."
+        ) from exc
+
+    if not isinstance(value, dict):
+        raise ModelResponseError("Model response must be a JSON object.")
+    return value
 
 
 def normalize(raw: dict[str, object]) -> dict[str, str]:

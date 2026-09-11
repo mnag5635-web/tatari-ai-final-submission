@@ -46,7 +46,8 @@ identical across runs; `build-4928.log` was consistently classified as
 `product_bug` rather than its debatable legacy `flaky` label. Across all 30
 calls, median latency was 8.57 s, p95 was 15.02 s, and max was 29.92 s. These
 small-set results support a shadow deployment or limited pilot, not an
-authoritative organization-wide rollout.
+authoritative organization-wide rollout. The credential-free per-case record is
+in `LIVE_EVAL_RESULTS.md`.
 
 Python 3.10+. If you would rather use the official `anthropic` SDK, a different
 language, or a different approach entirely, that is fine.

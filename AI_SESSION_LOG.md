@@ -1438,3 +1438,21 @@ Predictions were identical across runs, with `build-4928.log` consistently
 classified as `product_bug` rather than the legacy `flaky` label. Across all 30
 calls, latency was 8,573.5 ms median, 15,023.2 ms p95, and 29,921.5 ms max. The
 API key and workspace ID were then removed from the process environment.
+
+### Assistant response summary (follow-up)
+
+Ran an independent read-only review of the committed branch. It found no
+critical issue, but identified an important strict-parsing gap: a valid inner
+object could be extracted from certain malformed wrappers or fenced arrays, and
+duplicate JSON keys were silently accepted. It also identified that
+`eval.py` returned process exit code 0 when classifier/system errors occurred
+and that the summarized live evidence was not independently recomputable.
+
+Added four regression tests first and observed all four fail for the expected
+missing behavior. Then changed parsing to reject incomplete/ambiguous wrappers,
+arrays, duplicate keys, and multiple values; changed evaluation to return
+nonzero when any system error occurs; and added `LIVE_EVAL_RESULTS.md` with all
+30 credential-free per-case predictions and rounded latencies. The first full
+suite run exposed that one existing test expected the word “multiple” in the
+diagnostic; I corrected the error message without weakening the test. The
+complete deterministic suite increased from 26 to 30 tests.

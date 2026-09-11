@@ -25,7 +25,7 @@
 ## How I know it is better
 
 - Baseline deterministic suite: **5/5 passing**.
-- Final deterministic suite: **26/26 passing**, covering validation, JSON parsing, provider failures, malformed replies, unsupported categories, adversarial log serialization, deterministic safe actions, invalid UTF-8 input, CLI exit behavior, and evaluation error accounting.
+- Final deterministic suite: **30/30 passing**, covering validation, strict JSON parsing (including malformed wrappers, arrays, and duplicate keys), provider failures, malformed replies, unsupported categories, adversarial log serialization, deterministic safe actions, invalid UTF-8 input, CLI exit behavior, and evaluation error accounting.
 - A real CLI run with no API key now exits **1** with an understandable configuration error; the previous code would have returned `infra / high`.
 - The benchmark is now explicit about provenance and uncertainty, and manual review identifies the `build-4928` label disagreement instead of hiding it.
 - Three live `claude-haiku-4-5` runs completed with **9/10 legacy-label agreement and 0/10 system errors each**. All ten predictions were identical across runs; `build-4928` was consistently the sole disagreement.
@@ -35,6 +35,7 @@
 
 - The first live smoke request failed with HTTP 400 because the supplied API key required a workspace header. No fixture log was sent in that attempt.
 - An authorized read-only workspace-list request then failed with HTTP 403 because the key lacked administrative listing permission. The evaluation proceeded only after the user supplied the workspace ID; the header was injected in memory and no credential was committed.
+- Final independent review found that the response parser could extract a valid inner object from some malformed wrappers and silently accepted duplicate JSON keys. Regression tests reproduced both problems; parsing now rejects ambiguous wrappers, arrays, duplicates, and incomplete objects.
 - My first README patch accidentally left a stray Markdown code fence. Immediate diff inspection caught it and I removed it before committing; I am recording it here rather than presenting a perfectly cleaned-up process.
 - One patch-interface attempt appeared successful but did not persist across tool calls. The failing tests exposed the rollback; I repeated the red/green cycle using the persistent patch command.
 

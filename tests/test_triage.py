@@ -105,6 +105,24 @@ class TestExtractJson(unittest.TestCase):
         with self.assertRaisesRegex(triage.ModelResponseError, "JSON object"):
             triage._extract_json('[{"category":"lint"}]')
 
+    def test_fenced_top_level_array_is_rejected(self):
+        with self.assertRaises(triage.ModelResponseError):
+            triage._extract_json('''```json
+[{"category":"lint"}]
+```''')
+
+    def test_truncated_outer_object_is_rejected(self):
+        with self.assertRaises(triage.ModelResponseError):
+            triage._extract_json(
+                '{"wrapper": {"category":"lint","confidence":"high"}'
+            )
+
+    def test_duplicate_json_keys_are_rejected(self):
+        with self.assertRaisesRegex(triage.ModelResponseError, "Duplicate"):
+            triage._extract_json(
+                '{"category":"lint","category":"infra","confidence":"high"}'
+            )
+
 
 class TestClassify(unittest.TestCase):
     @mock.patch("triage.llm.complete")

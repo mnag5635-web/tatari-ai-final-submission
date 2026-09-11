@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
+import io
 import pathlib
 import sys
 import tempfile
 import unittest
+from unittest import mock
 
 sys.path.insert(0, str(pathlib.Path(__file__).resolve().parents[1]))
 
@@ -74,6 +77,27 @@ class TestEvaluate(unittest.TestCase):
 
         self.assertEqual(observed_logs, ["failure\ufffd\ufffderror"])
         self.assertTrue(results[0].matched)
+
+
+class TestMain(unittest.TestCase):
+    def test_system_error_produces_nonzero_exit_status(self):
+        results = [
+            evaluation.CaseResult(
+                name="broken.log",
+                expected="infra",
+                predicted=None,
+                latency_ms=1.0,
+                error="provider down",
+            )
+        ]
+
+        with (
+            mock.patch("eval.evaluate", return_value=results),
+            contextlib.redirect_stdout(io.StringIO()),
+        ):
+            exit_code = evaluation.main()
+
+        self.assertEqual(exit_code, 1)
 
 
 if __name__ == "__main__":

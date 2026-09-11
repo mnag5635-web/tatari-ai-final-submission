@@ -45,3 +45,6 @@ fixtures, but not production accuracy. Ten weakly adjudicated examples are too
 small to establish a rollout-quality error rate, and the observed tail latency
 (15.0 s aggregate p95, 29.9 s max) needs an explicit product budget before this
 can run synchronously on every build.
+
+See `LIVE_EVAL_RESULTS.md` for the credential-free per-case predictions and
+rounded latency observations used to recompute the aggregate.

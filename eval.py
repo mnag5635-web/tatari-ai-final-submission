@@ -14,6 +14,7 @@ import json
 import math
 import pathlib
 import statistics
+import sys
 import time
 from typing import Callable
 
@@ -169,11 +170,12 @@ def _print_summary(results: list[CaseResult]) -> None:
         print(f"  {expected:12} -> {predicted:12} {count}")
 
 
-def main() -> None:
+def main() -> int:
     results = evaluate()
     _print_results(results)
     _print_summary(results)
+    return int(any(result.error is not None for result in results))
 
 
 if __name__ == "__main__":
-    main()
+    sys.exit(main())
