@@ -2,49 +2,34 @@
 
 ## What I assumed
 
-- The five categories are fixed for this exercise. I improved their boundaries instead of inventing a new taxonomy.
-- `confidence: "high"` is a product/API contract, not calibrated probability. I preserved it for successful classifications rather than silently adding medium/low values.
-- The requirement that every CI log receive one category applies to a valid, successfully processed log; provider/configuration/parser/program failures are triage-system failures and must not be disguised as build classifications.
-- “Fast enough” has no numerical SLA in the PRD. I therefore report observed latency when a real model can be called rather than inventing a threshold.
-- `labels.json` is a regression artifact, not perfect ground truth, because the README says its labels came from an earlier LLM prompt plus spot checks.
+- The five categories are fixed. `confidence: "high"` is an API contract for successful classifications, not calibrated probability.
+- Provider, configuration, parsing, and program failures are triage-system failures; they must not be mislabeled as CI failures.
+- “Fast enough” has no SLA, so I report measured latency rather than inventing a threshold.
+- `labels.json` is a regression artifact, not perfect ground truth: its labels came from an earlier prompt plus spot checks.
 
 ## What I changed
 
-1. **Fail closed instead of manufacturing `infra`.** Provider failures, malformed model output, unsupported categories, and invalid confidence now raise an explicit `TriageError`. The CLI writes the failure to stderr and exits non-zero.
-2. **Separated untrusted evidence from instructions.** CI logs are JSON-serialized in a `ci_log` field, including delimiter-like text. The prompt explicitly treats every character in that field as evidence rather than instructions.
-3. **Kept remediation application-owned.** The model returns only category and contract confidence. After strict validation, the application selects a concise category-specific action, so arbitrary model-generated commands are never exposed as trusted guidance.
-4. **Made evaluation decision-useful.** `eval.py` reports per-case outcomes, classifier errors separately from disagreements, latency, category outcomes, and a Wilson interval for completed legacy-label agreement. `BENCHMARK_REVIEW.md` records my manual read of all ten fixtures without changing labels.
+- **Fail closed:** invalid model output and provider failures now raise `TriageError`; the CLI explains the error on stderr and exits non-zero instead of manufacturing `infra / high`.
+- **Protect the trust boundary:** the log is JSON-serialized as untrusted evidence, while strict parsing rejects wrappers, arrays, duplicate keys, extra values, unsupported categories, and invalid confidence.
+- **Own remediation in code:** the model selects only category and confidence; the application supplies a deterministic, category-specific action rather than exposing model-generated commands.
+- **Make evaluation useful:** `eval.py` separates system errors from label disagreements and reports per-case results, latency, category outcomes, and a Wilson interval. `BENCHMARK_REVIEW.md` documents manual review without rewriting labels.
 
 ## What I deliberately did not change
 
-- I did **not** edit `labels.json` to chase 100%. In particular, I think `build-4928.log` is better described as `product_bug`: the API promises sorted output while the SQL explicitly has no `ORDER BY`.
-- I did not commit workspace-specific credentials or headers to `llm.py`; the live evaluation supplied its required workspace header only in the evaluation process.
-- I did not add a rules engine, second model/provider, SDK dependency, web UI, Slack integration, database, or Docker layer. Those would add surface area without addressing the highest-risk failure mode first.
-- I did not claim confidence calibration or production accuracy from ten weakly adjudicated examples.
+I did not edit `labels.json` to force 100%. I consider `build-4928.log` a plausible `product_bug`: the API promises sorted output while the SQL omits `ORDER BY`. I also avoided a rules engine, second provider, SDK, UI, Slack integration, database, and Docker layer; none addresses the highest-risk failure mode. Credentials and workspace headers remained runtime-only.
 
 ## How I know it is better
 
-- Baseline deterministic suite: **5/5 passing**.
-- Final deterministic suite: **30/30 passing**, covering validation, strict JSON parsing (including malformed wrappers, arrays, and duplicate keys), provider failures, malformed replies, unsupported categories, adversarial log serialization, deterministic safe actions, invalid UTF-8 input, CLI exit behavior, and evaluation error accounting.
-- A real CLI run with no API key now exits **1** with an understandable configuration error; the previous code would have returned `infra / high`.
-- The benchmark is now explicit about provenance and uncertainty, and manual review identifies the `build-4928` label disagreement instead of hiding it.
-- Three live `claude-haiku-4-5` runs completed with **9/10 legacy-label agreement and 0/10 system errors each**. All ten predictions were identical across runs; `build-4928` was consistently the sole disagreement.
-- Across 30 live calls, observed latency was **8,573.5 ms median, 15,023.2 ms p95, and 29,921.5 ms max**. This is measured evidence, not an invented SLA.
+The deterministic suite grew from **5/5 to 30/30 passing**, covering strict parsing, provider failures, adversarial log serialization, safe actions, bad input, CLI exits, and evaluation error accounting. Without an API key, the CLI now exits **1** with a clear configuration error; previously it returned `infra / high`.
+
+Three live `claude-haiku-4-5` runs produced identical predictions, **9/10 legacy-label agreement**, and **0/30 system errors**; `build-4928` was the sole disagreement. Across 30 calls, latency was **8.57 s median, 15.02 s p95, and 29.92 s max**. This supports repeatability, not production accuracy or an unspecified latency SLA.
 
 ## What did not work
 
-- The first live smoke request failed with HTTP 400 because the supplied API key required a workspace header. No fixture log was sent in that attempt.
-- An authorized read-only workspace-list request then failed with HTTP 403 because the key lacked administrative listing permission. The evaluation proceeded only after the user supplied the workspace ID; the header was injected in memory and no credential was committed.
-- Final independent review found that the response parser could extract a valid inner object from some malformed wrappers and silently accepted duplicate JSON keys. Regression tests reproduced both problems; parsing now rejects ambiguous wrappers, arrays, duplicates, and incomplete objects.
-- My first README patch accidentally left a stray Markdown code fence. Immediate diff inspection caught it and I removed it before committing; I am recording it here rather than presenting a perfectly cleaned-up process.
-- One patch-interface attempt appeared successful but did not persist across tool calls. The failing tests exposed the rollback; I repeated the red/green cycle using the persistent patch command.
+The first smoke call failed HTTP 400 because the key required a workspace header; an authorized workspace-list request then failed HTTP 403 because the key lacked admin permission. No fixture was sent until the user supplied the workspace ID. Later review exposed permissive wrapper and duplicate-key parsing; failing regression tests reproduced both gaps before the parser was fixed. Diff inspection also caught a stray README fence, and the test suite caught one patch that had not persisted.
 
 ## What I would do next
 
-1. Build a substantially larger human-adjudicated dataset with written annotation guidance and inter-rater agreement.
-2. Run this version against that set repeatedly to measure category-specific errors, real latency/cost, and action usefulness; then establish explicit rollout thresholds.
-3. Shadow-deploy predictions as non-blocking CI metadata, collect engineer feedback, and adjudicate disagreements before any automated action.
-4. Add adversarial log/prompt-injection cases and monitor drift from real CI traffic.
-5. Establish an input budget plus organization-approved secret/PII redaction before sending real CI logs to an external provider.
+Create a larger human-adjudicated dataset with annotation guidance and inter-rater agreement; define accuracy, latency, cost, and action-quality thresholds; add input budgets, approved secret/PII redaction, and adversarial cases; then shadow-deploy and adjudicate real disagreements before automation.
 
-**Rollout recommendation:** do not roll this out organization-wide as an authoritative classifier next week. The implementation is materially safer and more testable, but the evidence base is too small and weakly labeled. Shadow deployment or a limited pilot is justified; full rollout is not yet justified.
+**Recommendation:** limited shadow pilot, not authoritative organization-wide rollout next week. The implementation is safer and repeatable, but ten weakly adjudicated examples are insufficient evidence.
