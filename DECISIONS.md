@@ -18,7 +18,7 @@
 ## What I deliberately did not change
 
 - I did **not** edit `labels.json` to chase 100%. In particular, I think `build-4928.log` is better described as `product_bug`: the API promises sorted output while the SQL explicitly has no `ORDER BY`.
-- I did not rewrite `llm.py`; its API-key validation, timeout, and transient retry behavior are adequate for this time box.
+- I did not commit workspace-specific credentials or headers to `llm.py`; the live evaluation supplied its required workspace header only in the evaluation process.
 - I did not add a rules engine, second model/provider, SDK dependency, web UI, Slack integration, database, or Docker layer. Those would add surface area without addressing the highest-risk failure mode first.
 - I did not claim confidence calibration or production accuracy from ten weakly adjudicated examples.
 
@@ -28,11 +28,13 @@
 - Final deterministic suite: **26/26 passing**, covering validation, JSON parsing, provider failures, malformed replies, unsupported categories, adversarial log serialization, deterministic safe actions, invalid UTF-8 input, CLI exit behavior, and evaluation error accounting.
 - A real CLI run with no API key now exits **1** with an understandable configuration error; the previous code would have returned `infra / high`.
 - The benchmark is now explicit about provenance and uncertainty, and manual review identifies the `build-4928` label disagreement instead of hiding it.
-- A live Anthropic key is not available in this isolated environment, so I do not claim a new model-agreement or API-latency number.
+- Three live `claude-haiku-4-5` runs completed with **9/10 legacy-label agreement and 0/10 system errors each**. All ten predictions were identical across runs; `build-4928` was consistently the sole disagreement.
+- Across 30 live calls, observed latency was **8,573.5 ms median, 15,023.2 ms p95, and 29,921.5 ms max**. This is measured evidence, not an invented SLA.
 
 ## What did not work
 
-- Live model evaluation/latency measurement could not run because `ANTHROPIC_API_KEY` is not available here. The controlled no-key evaluation reported **10/10 classifier/configuration errors** rather than fabricated classifications.
+- The first live smoke request failed with HTTP 400 because the supplied API key required a workspace header. No fixture log was sent in that attempt.
+- An authorized read-only workspace-list request then failed with HTTP 403 because the key lacked administrative listing permission. The evaluation proceeded only after the user supplied the workspace ID; the header was injected in memory and no credential was committed.
 - My first README patch accidentally left a stray Markdown code fence. Immediate diff inspection caught it and I removed it before committing; I am recording it here rather than presenting a perfectly cleaned-up process.
 - One patch-interface attempt appeared successful but did not persist across tool calls. The failing tests exposed the rollback; I repeated the red/green cycle using the persistent patch command.
 

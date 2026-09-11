@@ -19,10 +19,29 @@
 
 `build-4928.log` is the strongest example of benchmark-label risk. I would not change `labels.json` to make a score look better. If a stronger classifier returns `product_bug`, I would record that as a defensible disagreement with the legacy label and adjudicate it with humans before using the benchmark for rollout decisions.
 
-## Live evaluation status
+## Live evaluation
 
-A live Anthropic key is not available in this isolated environment, so no new
-model agreement or API-latency numbers are claimed here. The deterministic
-evaluation tests pass, and provider/configuration failures remain reported as
-system errors rather than CI classifications. A credentialed run is still
-required before rollout evidence is complete.
+- Date: 2026-09-11
+- Model: `claude-haiku-4-5`
+- Runs: 3 (30 total classifications)
+- Legacy-label agreement: 9/10 in every run (27/30 overall)
+- Classifier/system errors: 0/10 in every run (0/30 overall)
+- Repeatability: all ten predictions were identical across all three runs
+
+| Run | Agreement | Errors | Median | p95 (nearest rank) | Max |
+| --- | --- | --- | ---: | ---: | ---: |
+| 1 | 9/10 | 0/10 | 8,341.6 ms | 15,023.2 ms | 15,023.2 ms |
+| 2 | 9/10 | 0/10 | 8,680.9 ms | 12,480.1 ms | 12,480.1 ms |
+| 3 | 9/10 | 0/10 | 9,271.5 ms | 29,921.5 ms | 29,921.5 ms |
+| All 30 calls | 27/30 | 0/30 | 8,573.5 ms | 15,023.2 ms | 29,921.5 ms |
+
+`build-4928.log` was classified as `product_bug` in all three runs. That is the
+only disagreement with `labels.json`, and it is consistent with the manual
+review above: randomized row order exposes a concrete missing SQL `ORDER BY`
+rather than establishing that the underlying defect is merely transient.
+
+These results show reliable execution and repeatability on the supplied
+fixtures, but not production accuracy. Ten weakly adjudicated examples are too
+small to establish a rollout-quality error rate, and the observed tail latency
+(15.0 s aggregate p95, 29.9 s max) needs an explicit product budget before this
+can run synchronously on every build.

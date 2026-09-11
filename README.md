@@ -40,6 +40,14 @@ small-sample Wilson interval, and category outcomes. Because `labels.json` has o
 ten weakly adjudicated examples, those numbers are evidence for iteration rather
 than proof of production accuracy. See `BENCHMARK_REVIEW.md` for the manual audit.
 
+On 2026-09-11, three live `claude-haiku-4-5` runs each produced 9/10
+legacy-label agreement with zero classifier/system errors. Predictions were
+identical across runs; `build-4928.log` was consistently classified as
+`product_bug` rather than its debatable legacy `flaky` label. Across all 30
+calls, median latency was 8.57 s, p95 was 15.02 s, and max was 29.92 s. These
+small-set results support a shadow deployment or limited pilot, not an
+authoritative organization-wide rollout.
+
 Python 3.10+. If you would rather use the official `anthropic` SDK, a different
 language, or a different approach entirely, that is fine.
 
