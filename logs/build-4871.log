@@ -1,0 +1,35 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.4, pytest-8.2.1
+plugins: asyncio-0.23.7, randomly-3.15.0, xdist-3.6.1
+Using --randomly-seed=884471020
+gw0 [412] / gw1 [412] / gw2 [412] / gw3 [412]
+collected 412 items
+
+tests/test_ledger.py ..........F......                                   [ 22%]
+
+=================================== FAILURES ===================================
+_______________________ test_idempotent_write_twice ____________________________
+
+    def test_idempotent_write_twice(session):
+        payload = {"external_id": "inv-1001", "cents": 4200}
+        write_invoice(session, payload)
+>       write_invoice(session, payload)
+
+tests/test_ledger.py:157:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/ledger/writes.py:41: in write_invoice
+    session.execute(insert(Invoice).values(**payload))
+E   sqlalchemy.exc.IntegrityError: (psycopg.errors.UniqueViolation)
+E   duplicate key value violates unique constraint "invoice_external_id_key"
+E   DETAIL:  Key (external_id)=(inv-1001) already exists.
+E
+E   [SQL: INSERT INTO invoice (external_id, cents) VALUES (%(external_id)s, %(cents)s)]
+
+=========================== short test summary info ============================
+FAILED tests/test_ledger.py::test_idempotent_write_twice
+1 failed, 411 passed in 41.03s
+
+--- job metadata ---
+pytest-xdist:      4 workers, shared postgres instance
+occurrences:       2 of the last 20 builds (4863, 4871)
+note from #eng:    "passes locally every time for me"

@@ -1,0 +1,16 @@
+# Never commit credentials.  The API key is delivered out of band.
+.env
+.env.*
+*.pem
+*.key
+
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.DS_Store
+
+# NOTE: AI_SESSION_LOG.md is deliberately NOT ignored.  See CLAUDE.md.

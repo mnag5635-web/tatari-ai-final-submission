@@ -1,0 +1,28 @@
+============================= test session starts ==============================
+plugins: randomly-3.15.0
+Using --randomly-seed=3310028471
+collected 412 items
+
+tests/test_api.py ..................F.......                             [ 82%]
+
+=================================== FAILURES ===================================
+_________________________ test_list_returns_sorted _____________________________
+
+    def test_list_returns_sorted(client, seeded_invoices):
+        body = client.get("/invoices").json()
+        ids = [row["external_id"] for row in body["items"]]
+>       assert ids == ["inv-1001", "inv-1002", "inv-1003"]
+E       AssertionError: assert ['inv-1002', 'inv-1003', 'inv-1001'] == ['inv-1001', 'inv-1002', 'inv-1003']
+E         At index 0 diff: 'inv-1002' != 'inv-1001'
+
+tests/test_api.py:412: AssertionError
+------------------------------- Captured log call ------------------------------
+DEBUG    ledger.api.routes:routes.py:118 SELECT invoice.external_id, invoice.cents
+         FROM invoice
+DEBUG    ledger.api.routes:routes.py:118 (no ORDER BY clause)
+=========================== short test summary info ============================
+FAILED tests/test_api.py::test_list_returns_sorted
+1 failed, 411 passed in 37.44s
+
+--- job metadata ---
+occurrences: 6 of the last 40 builds, always with a different --randomly-seed

@@ -1,0 +1,22 @@
+#8 [4/9] RUN uv sync --frozen --no-dev
+#8 0.412 Resolved 0 packages in 3ms
+#8 1.882   x No solution found when resolving dependencies:
+#8 1.882   `-> Because only the following versions of grpcio are available:
+#8 1.882           grpcio<=1.62.2
+#8 1.882           grpcio==1.63.0
+#8 1.882           grpcio==1.64.1
+#8 1.882       and opentelemetry-exporter-otlp-proto-grpc==1.25.0 depends on
+#8 1.882       grpcio>=1.66.0, we can conclude that
+#8 1.882       opentelemetry-exporter-otlp-proto-grpc==1.25.0 cannot be used.
+#8 1.882
+#8 1.882       And because your project depends on
+#8 1.882       opentelemetry-exporter-otlp-proto-grpc==1.25.0 and
+#8 1.882       apache-beam==2.56.0 depends on grpcio<1.65.0, we can conclude
+#8 1.882       that your project's requirements are unsatisfiable.
+#8 ERROR: process "/bin/sh -c uv sync --frozen --no-dev" did not complete successfully: exit code: 1
+------
+Dockerfile:22
+--------------------
+  22 |     RUN uv sync --frozen --no-dev
+--------------------
+ERROR: failed to solve: process did not complete successfully: exit code: 1

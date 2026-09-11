@@ -1,0 +1,30 @@
+============================= test session starts ==============================
+collected 412 items
+
+tests/test_api.py ...............F..........                             [ 78%]
+
+=================================== FAILURES ===================================
+______________________ test_enrich_returns_within_budget _______________________
+
+    async def test_enrich_returns_within_budget():
+        async with Client(base_url=RATES_URL, timeout=2.0) as client:
+>           result = await enrich(client, batch_of(50))
+
+tests/test_api.py:301:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+src/ledger/enrich.py:77: in enrich
+    responses = await asyncio.gather(*(client.get(f"/rate/{k}") for k in keys))
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E       TimeoutError: request to /rate/USD-EUR exceeded 2.0s
+
+tests/test_api.py:301: TimeoutError
+=========================== short test summary info ============================
+FAILED tests/test_api.py::test_enrich_returns_within_budget
+1 failed, 411 passed in 71.88s
+
+--- job metadata ---
+runner:            ci-pool-linux-8x (shared)
+rates-service:     mock, in-cluster
+job duration:      71.88s  (median for this job over last 30 builds: 39.11s)
+first seen:        build 4859
+occurrences:       3 of the last 8 builds

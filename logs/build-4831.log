@@ -1,0 +1,18 @@
++ pytest tests/test_rollup.py -v --tb=short
+============================= test session starts ==============================
+collected 3 items
+
+tests/test_rollup.py::test_rollup_small PASSED                            [ 33%]
+tests/test_rollup.py::test_rollup_medium PASSED                           [ 66%]
+tests/test_rollup.py::test_rollup_full_year
+/usr/local/bin/entrypoint.sh: line 14:   847 Killed                  pytest tests/test_rollup.py -v --tb=short
+
+Build step exited with code 137
+
+--- container events ---
+State:        Terminated
+Reason:       OOMKilled
+Exit Code:    137
+Limits:       memory: 2Gi
+Requests:     memory: 512Mi
+Last observed memory.working_set_bytes: 2143289344

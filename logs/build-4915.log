@@ -1,0 +1,34 @@
++ pytest tests/ -x -q
+============================= test session starts ==============================
+collected 412 items
+
+tests/test_scheduler.py .........                                        [  8%]
+E
+==================================== ERRORS ====================================
+_____________ ERROR at setup of test_scheduler_picks_up_due_jobs _______________
+
+    @pytest.fixture(scope="session")
+    def session():
+        engine = create_engine(os.environ["DATABASE_URL"], pool_pre_ping=True)
+>       return Session(engine)
+
+tests/conftest.py:28:
+_ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _ _
+E   sqlalchemy.exc.OperationalError: (psycopg.OperationalError) connection
+E   failed: Connection refused
+E       Is the server running on host "postgres" (10.4.19.221) and accepting
+E       TCP/IP connections on port 5432?
+
+=========================== short test summary info ============================
+ERROR tests/test_scheduler.py::test_scheduler_picks_up_due_jobs
+!!!!!!!!!!!!!!!!!!!!!!!!!! stopping after 1 error !!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+9 passed, 1 error in 4.02s
+
+--- job metadata ---
+services:  postgres:16 (sidecar)
+sidecar log tail:
+  PostgreSQL init process complete; ready for start up.
+  LOG:  starting PostgreSQL 16.3
+  LOG:  database system is ready to accept connections
+sidecar became ready at: 00:00:06.4 into the job
+test suite started at:   00:00:03.1 into the job

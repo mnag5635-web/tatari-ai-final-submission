@@ -1,0 +1,33 @@
+============================= test session starts ==============================
+collected 412 items
+
+tests/test_reconcile.py ..........FF.....                                [ 45%]
+
+=================================== FAILURES ===================================
+_________________ test_period_totals_exclude_period_end ________________________
+
+    def test_period_totals_exclude_period_end():
+        # A billing period runs [start, end) -- the end date belongs to the
+        # next period.
+        entries = [
+            Entry(date=date(2026, 3, 1), cents=1000),
+            Entry(date=date(2026, 3, 31), cents=2500),
+            Entry(date=date(2026, 4, 1), cents=9999),
+        ]
+        total = period_total(entries, start=date(2026, 3, 1), end=date(2026, 4, 1))
+>       assert total == 3500
+E       assert 13499 == 3500
+
+tests/test_reconcile.py:204: AssertionError
+________________________ test_period_totals_empty_range ________________________
+
+    def test_period_totals_empty_range():
+        entries = [Entry(date=date(2026, 3, 15), cents=500)]
+>       assert period_total(entries, start=date(2026, 3, 15), end=date(2026, 3, 15)) == 0
+E       assert 500 == 0
+
+tests/test_reconcile.py:213: AssertionError
+=========================== short test summary info ============================
+FAILED tests/test_reconcile.py::test_period_totals_exclude_period_end
+FAILED tests/test_reconcile.py::test_period_totals_empty_range
+2 failed, 410 passed in 36.10s

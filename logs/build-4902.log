@@ -1,0 +1,22 @@
+============================= test session starts ==============================
+collected 412 items
+
+tests/test_reconcile.py ................F                                [ 51%]
+
+=================================== FAILURES ===================================
+______________________ test_split_allocates_all_cents __________________________
+
+    @pytest.mark.parametrize("total,ways", [(1000, 3), (100, 7), (5, 2)])
+    def test_split_allocates_all_cents(total, ways):
+        parts = split_evenly(total, ways)
+>       assert sum(parts) == total
+E       assert 999 == 1000
+E        +  where 999 = sum([333, 333, 333])
+
+tests/test_reconcile.py:88: AssertionError
+------------------------------- Captured log call ------------------------------
+DEBUG    ledger.reconcile:reconcile.py:61 split_evenly(1000, 3) -> per_part=333
+DEBUG    ledger.reconcile:reconcile.py:64 remainder=1 (dropped)
+=========================== short test summary info ============================
+FAILED tests/test_reconcile.py::test_split_allocates_all_cents[1000-3]
+1 failed, 411 passed in 35.77s

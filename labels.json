@@ -1,0 +1,12 @@
+{
+  "build-4817.log": "flaky",
+  "build-4823.log": "dependency",
+  "build-4831.log": "infra",
+  "build-4840.log": "lint",
+  "build-4852.log": "product_bug",
+  "build-4866.log": "flaky",
+  "build-4871.log": "product_bug",
+  "build-4902.log": "product_bug",
+  "build-4915.log": "infra",
+  "build-4928.log": "flaky"
+}
