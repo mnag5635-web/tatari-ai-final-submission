@@ -85,7 +85,11 @@ def evaluate(
         predicted: str | None = None
         error: str | None = None
         try:
-            predicted = classifier((logs_dir / name).read_text())["category"]
+            log_text = (logs_dir / name).read_text(
+                encoding="utf-8",
+                errors="replace",
+            )
+            predicted = classifier(log_text)["category"]
         except (OSError, triage.TriageError, KeyError, TypeError) as exc:
             error = str(exc)
         latency_ms = (time.perf_counter() - started) * 1000

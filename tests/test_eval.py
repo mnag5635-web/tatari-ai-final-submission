@@ -50,6 +50,31 @@ class TestEvaluate(unittest.TestCase):
         self.assertIsNone(by_name["error.log"].predicted)
         self.assertEqual(by_name["error.log"].error, "provider down")
 
+    def test_invalid_utf8_log_bytes_are_replaced_before_classification(self):
+        labels = {"invalid.log": "infra"}
+
+        with tempfile.TemporaryDirectory() as tmp:
+            logs_dir = pathlib.Path(tmp)
+            (logs_dir / "invalid.log").write_bytes(b"failure\xff\xfeerror")
+            observed_logs = []
+
+            def classifier(log_text: str) -> dict[str, str]:
+                observed_logs.append(log_text)
+                return {
+                    "category": "infra",
+                    "confidence": "high",
+                    "action": "Check infrastructure.",
+                }
+
+            results = evaluation.evaluate(
+                labels,
+                logs_dir=logs_dir,
+                classifier=classifier,
+            )
+
+        self.assertEqual(observed_logs, ["failure\ufffd\ufffderror"])
+        self.assertTrue(results[0].matched)
+
 
 if __name__ == "__main__":
     unittest.main()

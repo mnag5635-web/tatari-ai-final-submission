@@ -1235,3 +1235,106 @@ I reported that the decision record recommends shadow deployment or a limited pi
 ### Assistant response summary (follow-up 7 / final)
 
 I reported that all final gates passed: 25/25 deterministic tests, clean Python compilation, representative successful CLI formatting with exit code 0, real missing-API-key failure with exit code 1, a clean git working tree, and no credential material found by the secret scan. I explicitly said I could not honestly claim a new live-model accuracy or API-latency score because no Anthropic API key is available. The final response summarizes the implementation and files changed, gives exact verification results, calls out the build-4928 benchmark disagreement and remaining risks, lists commit hashes, recommends shadow deployment, provides interview talking points and an honest scorecard, and links the packaged repository.
+
+## Exchange 2
+
+### User prompt (verbatim)
+
+now what are the missing things in this project?
+
+### Assistant response summary
+
+Identified the remaining high-value work: preserve Tatari's Git history, strengthen the untrusted-log boundary, make actions application-owned, tolerate invalid UTF-8, run a credentialed evaluation when possible, and document real evidence without expanding scope.
+
+## Exchange 3
+
+### User prompt (verbatim)
+
+now give me step by step instructions on how to get started and fixing the missing requirements.
+
+### Assistant response summary
+
+Provided an ordered implementation sequence covering Git history, the source overlay, focused security and robustness changes, tests, session logging, incremental commits, live evaluation, evidence updates, verification, secret scanning, and a non-force push.
+
+## Exchange 4
+
+### User prompt (verbatim)
+
+now give the next steps step by step after this clearly.
+
+Windows PowerShell
+Copyright (C) Microsoft Corporation. All rights reserved.
+PS C:\Users\Sukumar Atluri> cd "$HOME\Downloads"
+PS C:\Users\Sukumar Atluri\Downloads>
+PS C:\Users\Sukumar Atluri\Downloads> git clone https://github.com/tatari-tv/ai-tooling-async-exercise-296837908002.git tatari-ai-final
+Cloning into 'tatari-ai-final'...
+remote: Enumerating objects: 24, done.
+remote: Counting objects: 100% (24/24), done.
+remote: Compressing objects: 100% (23/23), done.
+remote: Total 24 (delta 0), reused 20 (delta 0), pack-reused 0 (from 0)
+Receiving objects: 100% (24/24), 14.97 KiB | 807.00 KiB/s, done.
+PS C:\Users\Sukumar Atluri\Downloads>
+PS C:\Users\Sukumar Atluri\Downloads> cd tatari-ai-final
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final>
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> git status
+On branch main
+Your branch is up to date with 'origin/main'.
+nothing to commit, working tree clean
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> git log --oneline -10
+742d14b (HEAD -> main, origin/main, origin/HEAD) Initial commit
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> git branch --show-current
+
+### Assistant response summary
+
+Confirmed the original history, directed creation of the submission branch, baseline verification, copying only the intended files, deterministic tests, failure-path checks, and stopping before the remaining hardening and first commit.
+
+## Exchange 5
+
+### User prompt (verbatim)
+
+Listing '.\\.git\\objects\\pack'...
+Listing '.\\.git\\refs'...
+Listing '.\\.git\\refs\\heads'...
+Listing '.\\.git\\refs\\heads\\submission'...
+Listing '.\\.git\\refs\\remotes'...
+Listing '.\\.git\\refs\\remotes\\origin'...
+Listing '.\\.git\\refs\\tags'...
+Listing '.\\logs'...
+Listing '.\\tests'...
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> git diff --check
+warning: in the working copy of 'DECISIONS.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'README.md', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'eval.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'tests/test_triage.py', LF will be replaced by CRLF the next time Git touches it
+warning: in the working copy of 'triage.py', LF will be replaced by CRLF the next time Git touches it
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> Remove-Item Env:ANTHROPIC_API_KEY -ErrorAction SilentlyContinue
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final> python triage.py logs/build-4902.log
+logs\build-4902.log: triage failed: LLM provider/configuration failure: ANTHROPIC_API_KEY is not set.
+This module needs your own Anthropic key. Export it and try again:
+    export ANTHROPIC_API_KEY='...'
+Or replace this module with a client for whatever you already use.
+PS C:\Users\Sukumar Atluri\Downloads\tatari-ai-final>
+
+### Assistant response summary
+
+Explained that the CRLF notices were harmless and the missing-key behavior was correct, then specified the JSON trust boundary, deterministic actions, UTF-8 handling, focused tests, logging, verification, and first commit.
+
+## Exchange 6
+
+### User prompt (verbatim)
+
+instead of me running all these commands and editings manually i'll give the anthropic api key and could you do this all for me
+
+### Assistant response summary
+
+Agreed to take over the edits, tests, documentation, verification, and commits, but advised against placing an API key in chat. Requested a repository archive with embedded Git history and explained that live evaluation must use a secure local environment variable.
+
+## Exchange 7
+
+### User prompt (verbatim)
+
+No textual prompt; attached `tatari-ai-final-workspace.zip`.
+
+### Assistant response summary
+
+Confirmed the archive preserved branch `submission/mohan-ai-triage` on Tatari's `742d14b` commit. Corrected Windows line-ending noise, reviewed the repository and all benchmark logs, and established a 25-test baseline. Added four focused tests first and observed the intended failures for arbitrary actions, delimiter-breaking log text, and invalid UTF-8 in CLI/evaluation paths. Implemented JSON serialization, deterministic application-owned actions, and tolerant decoding; the focused tests and a 26-test suite passed. A patch persistence issue then caused commit `1d913a4` to capture the earlier overlay rather than the final hardening. Commit `6a52458` also initially omitted the updated session log when a multi-file patch partially failed. Both issues were diagnosed and recorded rather than hidden; the hardening was reapplied and committed persistently in a follow-up commit.
