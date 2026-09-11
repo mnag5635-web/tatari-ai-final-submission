@@ -11,7 +11,7 @@
 
 - **Fail closed:** invalid model output and provider failures now raise `TriageError`; the CLI explains the error on stderr and exits non-zero instead of manufacturing `infra / high`.
 - **Protect the trust boundary:** the log is JSON-serialized as untrusted evidence, while strict parsing rejects wrappers, arrays, duplicate keys, extra values, unsupported categories, and invalid confidence.
-- **Own remediation in code:** the model selects only category and confidence; the application supplies a deterministic, category-specific action rather than exposing model-generated commands.
+- **Own remediation in code:** the model selects only category and confidence; the application supplies a deterministic, category-specific action. This is intentionally less context-specific than free-form LLM remediation, but it is stable, auditable, and avoids exposing hallucinated operational commands.
 - **Make evaluation useful:** `eval.py` separates system errors from label disagreements and reports per-case results, latency, category outcomes, and a Wilson interval. `BENCHMARK_REVIEW.md` documents manual review without rewriting labels.
 
 ## What I deliberately did not change
@@ -22,7 +22,7 @@ I did not edit `labels.json` to force 100%. I consider `build-4928.log` a plausi
 
 The deterministic suite grew from **5/5 to 30/30 passing**, covering strict parsing, provider failures, adversarial log serialization, safe actions, bad input, CLI exits, and evaluation error accounting. Without an API key, the CLI now exits **1** with a clear configuration error; previously it returned `infra / high`.
 
-Three live `claude-haiku-4-5` runs produced identical predictions, **9/10 legacy-label agreement**, and **0/30 system errors**; `build-4928` was the sole disagreement. Across 30 calls, latency was **8.57 s median, 15.02 s p95, and 29.92 s max**. This supports repeatability, not production accuracy or an unspecified latency SLA.
+Three live `claude-haiku-4-5` runs produced identical predictions, **9/10 legacy-label agreement**, and **0/30 system errors**; `build-4928` was the sole disagreement. Across 30 calls, latency was **8.57 s median, 15.02 s p95, and 29.92 s max**. The tail appears dominated by external model/API variability, but without a product latency SLO I do not claim this synchronous path is “fast enough”; production rollout should set latency/cost budgets and evaluate timeout, retry, or shadow/asynchronous options. This supports repeatability, not production accuracy.
 
 ## What did not work
 
@@ -30,6 +30,6 @@ The first smoke call failed HTTP 400 because the key required a workspace header
 
 ## What I would do next
 
-Create a larger human-adjudicated dataset with annotation guidance and inter-rater agreement; define accuracy, latency, cost, and action-quality thresholds; add input budgets, approved secret/PII redaction, and adversarial cases; then shadow-deploy and adjudicate real disagreements before automation.
+Create a larger human-adjudicated dataset with annotation guidance and inter-rater agreement; define accuracy, latency, cost, and action-quality thresholds; evaluate richer context-aware remediation separately at a lower trust level; add input budgets, approved secret/PII redaction, and adversarial cases; then shadow-deploy and adjudicate real disagreements before automation.
 
 **Recommendation:** limited shadow pilot, not authoritative organization-wide rollout next week. The implementation is safer and repeatable, but ten weakly adjudicated examples are insufficient evidence.

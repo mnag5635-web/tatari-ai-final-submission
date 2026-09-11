@@ -42,9 +42,13 @@ rather than establishing that the underlying defect is merely transient.
 
 These results show reliable execution and repeatability on the supplied
 fixtures, but not production accuracy. Ten weakly adjudicated examples are too
-small to establish a rollout-quality error rate, and the observed tail latency
-(15.0 s aggregate p95, 29.9 s max) needs an explicit product budget before this
-can run synchronously on every build.
+small to establish a rollout-quality error rate. The observed tail latency
+(15.0 s aggregate p95, 29.9 s max) is consistent with external model/API
+variability dominating local processing, but this dataset does not prove the
+root cause. Because the PRD defines no latency SLO, I do not claim the current
+synchronous path is “fast enough” for every build; production rollout should
+first define latency and cost budgets, then evaluate timeout/retry policy and
+shadow or asynchronous execution if needed.
 
 See `LIVE_EVAL_RESULTS.md` for the credential-free per-case predictions and
 rounded latency observations used to recompute the aggregate.

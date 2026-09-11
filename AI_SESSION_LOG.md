@@ -1,5 +1,8 @@
 # AI Session Log
 
+> **Transcript context:** Exchange 1 is intentionally a detailed implementation brief prepared after reviewing the exercise and deciding what a strong submission should optimize for. The exchanges that follow preserve the actual execution process, including failed calls, debugging, corrections, and changes in judgment; the transcript has not been rewritten to make those steps appear more spontaneous.
+
+
 ## Exchange 1
 
 ### User prompt (verbatim)
@@ -1491,3 +1494,24 @@ section and the material evidence and trade-offs. Fresh verification passed
 30/30 tests, Python compilation, the missing-key nonzero-exit check, Git
 integrity and whitespace checks, confirmation that PRD/labels/log fixtures are
 unchanged, and a credential-pattern scan across Git history.
+
+
+## Exchange 14
+
+### User prompt (verbatim)
+
+do you see any need to improve anything based on claude's suggestion?
+
+### Assistant response summary
+
+Recommended no core implementation changes. Suggested three small documentation/presentation improvements only: explicitly address the latency anomaly and undefined SLO, explain the reliability trade-off behind deterministic actions, and transparently frame the front-loaded first transcript prompt without rewriting the actual history.
+
+## Exchange 15
+
+### User prompt (verbatim)
+
+then make these changes and give me the final zip also tell me based on the original exercise requiremnts does the interviewers want this to be submiited as a git repo or a zip file.
+
+### Assistant response summary
+
+Applied only the three review-driven documentation improvements: clarified that the observed tail latency does not prove readiness against an undefined SLO and should be evaluated against explicit latency/cost budgets; documented the intentional trade-off of deterministic category actions versus richer but less trustworthy free-form remediation; and added a transparent framing note explaining that the first transcript prompt was a front-loaded implementation brief rather than rewriting the subsequent iterative process. Re-read the original README and concluded that the requested deliverables center on preserved commits, `DECISIONS.md`, and the assistant transcript, so a Git repository/branch is the intended submission form; a ZIP is best used only as the transfer mechanism or backup when the submission portal requires a file.
