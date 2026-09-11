@@ -1456,3 +1456,17 @@ nonzero when any system error occurs; and added `LIVE_EVAL_RESULTS.md` with all
 suite run exposed that one existing test expected the word “multiple” in the
 diagnostic; I corrected the error message without weakening the test. The
 complete deterministic suite increased from 26 to 30 tests.
+
+### Assistant response summary (follow-up 2 / final verification)
+
+The scoped re-review marked all three findings addressed: ambiguous model
+responses are rejected, evaluation system errors return a nonzero process exit,
+and all live results are independently recomputable from the credential-free
+record. It found no new Critical or Important issues. A fresh final gate passed
+30/30 tests, Python compilation, strict-parser symptom checks, evaluation and
+CLI failure-exit checks, Git integrity/whitespace/status checks, and a
+credential-pattern scan across every commit. The final recommendation remains
+shadow deployment or a limited pilot rather than authoritative organization-wide
+rollout. An initial packaging command was blocked before execution because its
+temporary cleanup pattern was disallowed; packaging was retried without a
+destructive cleanup command.
